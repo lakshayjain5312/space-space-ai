@@ -16,13 +16,13 @@ import torch.nn.functional as F
 from indic_transliteration import sanscript
 from indic_transliteration.sanscript import transliterate
 #english model
-model_name_of_english = "./safe-space-moderation/english_model"
+model_name_of_english = "english_model"
 tokenizer_of_english = AutoTokenizer.from_pretrained(model_name_of_english, use_fast=True)
 model_of_english = AutoModelForSequenceClassification.from_pretrained(model_name_of_english)
 model_of_english.eval()
 
 #hindi model
-model_name_of_hindi = "./safe-space-moderation/hindi_model"
+model_name_of_hindi = "hindi_model"
 tokenizer_of_hindi = AutoTokenizer.from_pretrained(model_name_of_hindi, use_fast=True)
 model_of_hindi = AutoModelForSequenceClassification.from_pretrained(model_name_of_hindi)
 model_of_hindi.eval() 
