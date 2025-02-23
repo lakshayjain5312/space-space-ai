@@ -40,7 +40,7 @@ detoxify_model=Detoxify('unbiased')
 
 
 
-model_name_of_hindi = "Hate-speech-CNERG/hindi-abusive-MuRIL"
+model_name_of_hindi = "hindi-toxicity-model"
 tokenizer_of_hindi = AutoTokenizer.from_pretrained(model_name_of_hindi, use_fast=True)
 model_of_hindi = AutoModelForSequenceClassification.from_pretrained(model_name_of_hindi)
 model_of_hindi.eval() 
