@@ -1,1 +1,1 @@
-cd safe-space-moderation && python app.py
+web: cd safe-space-moderation && python app.py
