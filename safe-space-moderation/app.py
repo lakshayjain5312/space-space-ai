@@ -1,53 +1,32 @@
-import numpy as np
+
 from flask import Flask, jsonify, request
-import pickle
-from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
+from flask_cors import CORS
+# import pickle
+# from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
 import re
-from nltk.stem import WordNetLemmatizer
 import nltk
 import emoji
-from contractions import fix as contractions_fix
 from nltk.tokenize import RegexpTokenizer
 from googleapiclient import discovery
 from nltk.stem import PorterStemmer
 from rapidfuzz import fuzz, process as rapidfuzz_process
-from typing import List
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import torch.nn.functional as F
 from indic_transliteration import sanscript
 from indic_transliteration.sanscript import transliterate
-from detoxify import Detoxify
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-# from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+#english model
+model_name_of_english = "english_model"
+tokenizer_of_english = AutoTokenizer.from_pretrained(model_name_of_english, use_fast=True)
+model_of_english = AutoModelForSequenceClassification.from_pretrained(model_name_of_english)
+model_of_english.eval()
 
-
-# Initialize the model and tokenizer
-# Load model directly
-
-
-
-
-
-
-
-
-# Load tokenizer and model
-
-# 2. Load the fast tokenizer and model
-
-detoxify_model=Detoxify('unbiased')
-
-
-
-model_name_of_hindi = "my_local_model"
+#hindi model
+model_name_of_hindi = "hindi_model"
 tokenizer_of_hindi = AutoTokenizer.from_pretrained(model_name_of_hindi, use_fast=True)
 model_of_hindi = AutoModelForSequenceClassification.from_pretrained(model_name_of_hindi)
 model_of_hindi.eval() 
 
-
-
-# Hindi-to-English translation model
 
 
 # Add this before creating the Flask app
@@ -70,6 +49,37 @@ client = discovery.build(
 
 
 app = Flask(__name__)
+CORS(app)
+def english_toxicity_check(text):
+    # Tokenize the input text
+    inputs = tokenizer_of_english(text, return_tensors="pt", max_length=256, truncation=True, padding=True)
+    
+    # Run inference without gradients
+    with torch.no_grad():
+        outputs = model_of_english(**inputs)
+    
+    # Convert logits to probabilities using sigmoid since Toxic-BERT is multi-label
+    probabilities = torch.sigmoid(outputs.logits)[0]  # batch size of 1
+    
+    # If model config has id2label mapping, try to get the "toxic" label's probability
+    if hasattr(model_of_english.config, "id2label"):
+        id2label = model_of_english.config.id2label
+        toxic_index = None
+        # Search for the index corresponding to the label "toxic"
+        for idx, label in id2label.items():
+            if label.lower() == "toxic":
+                toxic_index = idx
+                break
+        # If found, return its probability
+        if toxic_index is not None:
+            toxicity_value = probabilities[toxic_index].item()
+            return toxicity_value
+        else:
+            # Fallback: return the highest probability if "toxic" label isn't found
+            return float(probabilities.max().item())
+    else:
+        # If no mapping exists, return the highest probability
+        return float(probabilities.max().item())
 
 
 def hindi_toxicity_check(text):
@@ -235,16 +245,13 @@ def process_msg(msg):
     else:
         
         msg = preprocess_text(msg)
-        print(msg)
+        
         if contains_offensive_language(msg):
-            print('edge')
             return True
-        if detoxify_model.predict(msg)['toxicity'] > 0.75:
-            print('eng')
+        if english_toxicity_check(msg) > 0.75:
             return True
         transliterated_hindi_msg=transliterate_to_hindi(msg)
         if hindi_toxicity_check(transliterated_hindi_msg) == 'LABEL_1':
-            print('hindi')
             return True
         # msg = [msg]
         # # List of stopwords 
