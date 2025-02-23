@@ -1,1 +1,0 @@
-web: pip install -r requirements.txt && cd safe-space-moderation && python app.py

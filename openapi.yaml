@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: Toxicity Detection API
+  description: This API checks for toxicity in provided messages.
+  version: 1.0.0
+servers:
+  - url: http://0.0.0.0:10000
+paths:
+  /api/v1/toxicity:
+    post:
+      summary: Check for toxicity in a message.
+      operationId: checkToxicity
+      requestBody:
+        description: Message payload for toxicity check
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                msg:
+                  type: string
+                  description: The message to check for toxicity.
+                  example: "Hello, how are you?"
+      responses:
+        "200":
+          description: A successful response indicating toxicity status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  toxicity:
+                    type: integer
+                    description: Indicates if toxicity is detected (1) or not (0).
+                    example: 0
+                  msg:
+                    type: string
+                    description: The original message or additional information.
+                    example: "Hello, how are you?"
