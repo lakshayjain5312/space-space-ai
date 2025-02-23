@@ -1,6 +1,4 @@
 import numpy as np
-np.int = np.int32
-np.float = np.float64
 from flask import Flask, jsonify, request
 import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
@@ -21,7 +19,6 @@ from indic_transliteration import sanscript
 from indic_transliteration.sanscript import transliterate
 from detoxify import Detoxify
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-from profanity_check import predict, predict_prob
 # from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
 
 
@@ -239,9 +236,6 @@ def process_msg(msg):
         
         msg = preprocess_text(msg)
         print(msg)
-        if predict([msg])[0] == 1:
-            print('niga')
-            return True
         if contains_offensive_language(msg):
             print('edge')
             return True
